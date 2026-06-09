@@ -352,15 +352,15 @@
           </div>
           <div class="funnel-drop">▼ 84.6% ушли после первого ответа</div>
         </div>
-        <div class="funnel-row">
+        <div class="funnel-row" style="opacity:0.55;">
           <div class="funnel-meta">
-            <span class="funnel-name">📅 Шаг 3 · Встреча назначена</span>
-            <span class="funnel-nums" id="stat-meetings-row">205 · 1.8%</span>
+            <span class="funnel-name" style="color:var(--muted);">Шаг 3 · Встреча · н/д</span>
+            <span class="funnel-nums" style="color:var(--muted);">—</span>
           </div>
           <div class="funnel-bar-track">
-            <div class="funnel-bar-fill" style="width:1.8%;background:#22c55e;"></div>
+            <div class="funnel-bar-fill" style="width:100%;background:#374151;"></div>
           </div>
-          <div class="funnel-drop">▼ 54.3% не дошли до встречи</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;text-align:right;">статус встречи отсутствует в выгрузке</div>
         </div>
       </div>
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
@@ -427,7 +427,7 @@
 
       <!-- Hour chart -->
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">КОНВЕРСИЯ В ВСТРЕЧУ ПО ЧАСУ ДНЯ</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">СРЕДНЯЯ ДЛИТЕЛЬНОСТЬ ЗВОНКА ПО ЧАСУ ДНЯ</div>
         <div class="hour-chart" id="hourChart"></div>
       </div>
     </div>
@@ -477,7 +477,7 @@
       <span class="ab-title">Перераспределение звонков с 17:00</span>
     </div>
     <p style="color:var(--label);font-size:13px;">
-      В 17:00 сконцентрировано 2 400 звонков (21% объёма) при конверсии 1.0%. Лучшие часы — 13:00 (3.7%) и 18:00 (3.3%). Перенести 1 000 звонков — потенциал +25–35 встреч без увеличения объёма.
+      Оптимальное время определяется по <strong style="color:var(--text);">средней длительности звонка</strong>: чем дольше разговор — тем выше вовлечённость клиента. В 17:00 сконцентрировано 3 053 звонка (27% объёма), но средняя длительность всего <strong style="color:var(--danger);">10с</strong> — минимум за день. Лучший час — 10:00 (28с). Гипотеза: перенести 1 000 звонков с 17:00 на 10–11:00, ожидая рост вовлечённости без увеличения объёма.
     </p>
   </div>
 
@@ -491,49 +491,41 @@ async function loadData() {
   const d = await res.json();
   const el = id => document.getElementById(id);
   const fmt = n => n.toLocaleString('ru-RU');
-  el('kpi-total').textContent          = fmt(d.total_calls);
-  el('kpi-dial-rate').textContent      = d.dial_rate + '%';
-  el('kpi-answer-rate').textContent    = d.answer_rate + '%';
-  el('kpi-pitch-rate').textContent     = d.pitch_rate + '%';
-  el('kpi-meetings').textContent       = 'н/д';
-  el('stat-answered-row').textContent  = fmt(d.answered) + ' · ' + d.dial_rate + '%';
-  el('stat-step2-row').textContent     = fmt(d.step2) + ' · ' + d.pitch_rate + '%';
-  el('stat-meetings-row').textContent  = fmt(d.meetings) + ' · ' + d.conversion_rate + '%';
-  el('stat-updated-at').textContent    = d.updated_at;
+  el('kpi-total').textContent         = fmt(d.total_calls);
+  el('kpi-dial-rate').textContent     = d.dial_rate + '%';
+  el('kpi-answer-rate').textContent   = d.answer_rate + '%';
+  el('kpi-pitch-rate').textContent    = d.pitch_rate + '%';
+  el('kpi-meetings').textContent      = 'н/д';
+  el('stat-answered-row').textContent = fmt(d.answered) + ' · ' + d.dial_rate + '%';
+  el('stat-step2-row').textContent    = fmt(d.step2) + ' · ' + d.pitch_rate + '%';
+  el('stat-updated-at').textContent   = d.updated_at;
+
+  const hourDur = d.by_hour_avg_duration;
+  const hours = Object.keys(hourDur).map(Number).sort((a, b) => a - b);
+  const vals = hours.map(h => hourDur[h]);
+  const maxDur = Math.max(...vals);
+  const minDur = Math.min(...vals);
+  const hc = document.getElementById('hourChart');
+  hc.innerHTML = '';
+  hours.forEach(h => {
+    const dur = hourDur[h];
+    const pct = (dur / maxDur * 100).toFixed(0);
+    const isHot  = dur === minDur;
+    const isBest = dur === maxDur;
+    const color = isHot ? '#ef4444' : isBest ? '#22c55e' : `hsl(${220 + dur * 4},65%,60%)`;
+    const badge = isHot  ? '<span class="hour-badge hot">мало вовлечения</span>'
+                : isBest ? '<span class="hour-badge good">лучший час</span>' : '';
+    hc.innerHTML += `
+      <div class="hour-row">
+        <span class="hour-label">${h}:00</span>
+        <div class="hour-bar-wrap">
+          <div class="hour-bar" style="width:${pct}%;background:${color};opacity:${isHot?1:0.8};"></div>
+          <span class="hour-stat">${dur}с ${badge}</span>
+        </div>
+      </div>`;
+  });
 }
 window.addEventListener('load', loadData);
-
-const hourData = [
-  {hour:9,  calls:42,   meetings:1,  conv:2.4},
-  {hour:10, calls:21,   meetings:1,  conv:4.8},
-  {hour:11, calls:850,  meetings:29, conv:3.4},
-  {hour:12, calls:994,  meetings:17, conv:1.7},
-  {hour:13, calls:813,  meetings:30, conv:3.7},
-  {hour:14, calls:983,  meetings:29, conv:3.0},
-  {hour:15, calls:416,  meetings:11, conv:2.6},
-  {hour:16, calls:560,  meetings:19, conv:3.4},
-  {hour:17, calls:2400, meetings:24, conv:1.0},
-  {hour:18, calls:1002, meetings:33, conv:3.3},
-  {hour:19, calls:331,  meetings:11, conv:3.3},
-];
-const maxConv = Math.max(...hourData.map(d => d.conv));
-const hc = document.getElementById('hourChart');
-hourData.forEach(d => {
-  const pct = (d.conv / maxConv * 100).toFixed(0);
-  const isHot = d.hour === 17;
-  const isBest = d.hour === 13 || d.hour === 18;
-  const color = isHot ? '#ef4444' : isBest ? '#22c55e' : `hsl(${220+d.conv*15},65%,60%)`;
-  const badge = isHot ? '<span class="hour-badge hot">узкое место</span>'
-              : isBest ? '<span class="hour-badge good">лучший час</span>' : '';
-  hc.innerHTML += `
-    <div class="hour-row">
-      <span class="hour-label">${d.hour}:00</span>
-      <div class="hour-bar-wrap">
-        <div class="hour-bar" style="width:${pct}%;background:${color};opacity:${isHot?1:0.8};"></div>
-        <span class="hour-stat">${d.conv}% ${badge}</span>
-      </div>
-    </div>`;
-});
 </script>
 </body>
 </html>
