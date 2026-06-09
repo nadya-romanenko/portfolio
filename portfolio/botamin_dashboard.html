@@ -39,13 +39,14 @@
 
   main { padding:28px 32px; max-width:1300px; }
 
-  .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:24px; }
   .kpi { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px 20px; position:relative; overflow:hidden; }
   .kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
   .kpi.blue::before  { background:var(--accent); }
   .kpi.purple::before { background:var(--accent2); }
   .kpi.green::before  { background:var(--success); }
   .kpi.amber::before  { background:var(--warn); }
+  .kpi.teal::before   { background:#06b6d4; }
   .kpi-label { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
   .kpi-value { font-size:28px; font-weight:700; letter-spacing:-1px; line-height:1; }
   .kpi-sub { color:var(--label); font-size:11px; margin-top:4px; }
@@ -163,22 +164,27 @@
   <div class="kpi-grid">
     <div class="kpi blue">
       <div class="kpi-label">Всего звонков</div>
-      <div class="kpi-value" id="stat-total-calls">11 486</div>
+      <div class="kpi-value" id="kpi-total">11 486</div>
       <div class="kpi-sub">за неделю (основной объём 28–29 мая)</div>
     </div>
     <div class="kpi purple">
       <div class="kpi-label">Дозвон</div>
-      <div class="kpi-value">99.6%</div>
+      <div class="kpi-value" id="kpi-dial-rate">99.6%</div>
       <div class="kpi-sub">11 440 из 11 486</div>
+    </div>
+    <div class="kpi teal">
+      <div class="kpi-label">Клиент ответил</div>
+      <div class="kpi-value" id="kpi-answer-rate">25.4%</div>
+      <div class="kpi-sub">из дозвонившихся</div>
     </div>
     <div class="kpi green">
       <div class="kpi-label">Встречи назначены</div>
-      <div class="kpi-value" id="stat-meetings">205</div>
-      <div class="kpi-sub">1.8% от всех звонков</div>
+      <div class="kpi-value" id="kpi-meetings">н/д</div>
+      <div class="kpi-sub">нет данных в выгрузке</div>
     </div>
     <div class="kpi amber">
       <div class="kpi-label">Конверсия в питч</div>
-      <div class="kpi-value" id="stat-pitch-rate">3.9%</div>
+      <div class="kpi-value" id="kpi-pitch-rate">3.9%</div>
       <div class="kpi-sub">449 дошли до шага 2</div>
     </div>
   </div>
@@ -485,9 +491,11 @@ async function loadData() {
   const d = await res.json();
   const el = id => document.getElementById(id);
   const fmt = n => n.toLocaleString('ru-RU');
-  el('stat-total-calls').textContent   = fmt(d.total_calls);
-  el('stat-meetings').textContent      = fmt(d.meetings);
-  el('stat-pitch-rate').textContent    = d.pitch_rate + '%';
+  el('kpi-total').textContent          = fmt(d.total_calls);
+  el('kpi-dial-rate').textContent      = d.dial_rate + '%';
+  el('kpi-answer-rate').textContent    = d.answer_rate + '%';
+  el('kpi-pitch-rate').textContent     = d.pitch_rate + '%';
+  el('kpi-meetings').textContent       = 'н/д';
   el('stat-answered-row').textContent  = fmt(d.answered) + ' · ' + d.dial_rate + '%';
   el('stat-step2-row').textContent     = fmt(d.step2) + ' · ' + d.pitch_rate + '%';
   el('stat-meetings-row').textContent  = fmt(d.meetings) + ' · ' + d.conversion_rate + '%';
