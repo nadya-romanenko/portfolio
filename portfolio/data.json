@@ -1,0 +1,35 @@
+{
+  "total_calls": 11486,
+  "answered": 2922,
+  "step2": 2641,
+  "meetings": 244,
+  "dial_rate": 25.4,
+  "pitch_rate": 23.0,
+  "conversion_rate": 2.1,
+  "by_reason": {
+    "bot_hangup": 5864,
+    "client_hangup": 5506,
+    "elevenlabs_hangup": 44,
+    "no_answer": 44,
+    "queue_timeout": 9,
+    "hangup": 14,
+    "no_user_speech": 1,
+    "network_error": 1,
+    "bad_number": 1,
+    "answering_machine": 2
+  },
+  "by_hour": {
+    "9": 2,
+    "10": 2,
+    "11": 37,
+    "12": 22,
+    "13": 27,
+    "14": 44,
+    "15": 12,
+    "16": 22,
+    "17": 28,
+    "18": 38,
+    "19": 10
+  },
+  "updated_at": "09.06.2026 14:06"
+}
